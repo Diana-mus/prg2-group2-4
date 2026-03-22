@@ -18,12 +18,16 @@ public class MovieController implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
 
-        switch (path) {
-            case "/api/movies/getAll" -> handleGetAll(exchange);
-            case "/api/movies/add"    -> handleAdd(exchange);
-            case "/api/movies/delete" -> handleDelete(exchange);
-            case "/api/movies/update" -> handleUpdate(exchange);
-            default -> ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Path not found\" }");
+        if (path.endsWith("/getAll")) {
+            handleGetAll(exchange);
+        } else if (path.endsWith("/add")) {
+            handleAdd(exchange);
+        } else if (path.endsWith("/delete")) {
+            handleDelete(exchange);
+        } else if (path.endsWith("/update")) {
+            handleUpdate(exchange);
+        } else {
+            ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Path not found\" }");
         }
     }
 
