@@ -17,6 +17,7 @@ public class MovieController implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
+        System.out.println("Received path: " + path);
 
         if (path.endsWith("/getAll")) {
             handleGetAll(exchange);
