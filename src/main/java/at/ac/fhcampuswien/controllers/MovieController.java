@@ -11,11 +11,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Map;
 import java.util.HashMap;
+import com.google.gson.Gson;
 
 
 public class MovieController implements HttpHandler {
 
     private List<Movie> movies = Movie.generateDummyMovies();
+    private final Gson gson = new Gson();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -57,7 +59,10 @@ public class MovieController implements HttpHandler {
                .filter(m -> releaseYear == null || String.valueOf(m.getReleaseYear()).equals(releaseYear))
                .toList();
 
-       ApiUtils.sendResponse(exchange, 200, moviesToJson(result));
+       Gson gson = new Gson();
+       String json = gson.toJson(result);
+
+       ApiUtils.sendResponse(exchange, 200, json);
    }
 
     //GET /api/movies/getAll
@@ -71,31 +76,36 @@ public class MovieController implements HttpHandler {
 
     //POST /api/movies/add
     private void handleAdd(HttpExchange exchange) throws IOException {
+
         if (!exchange.getRequestMethod().equals("POST")) {
             ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
             return;
         }
 
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        String title = extractJsonValue(body, "title");
-        String genre = extractJsonValue(body, "genre");
-        int releaseYear = extractIntValue(body, "releaseYear");
 
-        if (title == null || genre == null || releaseYear == -1) {
+        Movie movie = gson.fromJson(body, Movie.class);
+
+        if (movie == null || movie.getTitle() == null || movie.getGenre() == null) {
             ApiUtils.sendResponse(exchange, 400, "{ \"error\": \"Invalid movie data\" }");
             return;
         }
 
-        // Prüfen ob Film schon existiert
+        // check duplicate
         for (Movie m : movies) {
-            if (m.getTitle().equals(title) && m.getGenre().equals(genre) && m.getReleaseYear() == releaseYear) {
+            if (m.getTitle().equals(movie.getTitle()) &&
+                    m.getGenre().equals(movie.getGenre()) &&
+                    m.getReleaseYear() == movie.getReleaseYear()) {
+
                 ApiUtils.sendResponse(exchange, 400, "{ \"error\": \"Movie already exists\" }");
                 return;
             }
         }
 
-        movies.add(new Movie(title, genre, releaseYear));
-        ApiUtils.sendResponse(exchange, 201, "{ \"message\": \"Movie added successfully\" }");
+        movies.add(movie);
+
+        String json = gson.toJson(movie);
+        ApiUtils.sendResponse(exchange, 201, json);
     }
 
     // DELETE /api/movies/delete
