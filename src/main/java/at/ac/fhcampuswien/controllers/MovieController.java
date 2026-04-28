@@ -9,10 +9,15 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
+import com.google.gson.Gson;
+
 
 public class MovieController implements HttpHandler {
 
     private List<Movie> movies = Movie.generateDummyMovies();
+    private final Gson gson = new Gson();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -27,10 +32,38 @@ public class MovieController implements HttpHandler {
             handleDelete(exchange);
         } else if (path.endsWith("/update")) {
             handleUpdate(exchange);
+        }
+        else if (path.contains("/search")) {
+            handleSearch(exchange);
         } else {
             ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Path not found\" }");
         }
     }
+   // GET /api/movies/search
+   private void handleSearch(HttpExchange exchange) throws IOException {
+       if (!exchange.getRequestMethod().equals("GET")) {
+           ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
+           return;
+       }
+
+       String query = exchange.getRequestURI().getQuery();
+       Map<String, String> params = parseQueryParams(query);
+
+       String title = params.get("title");
+       String genre = params.get("genre");
+       String releaseYear = params.get("releaseYear");
+
+       List<Movie> result = movies.stream()
+               .filter(m -> title == null || m.getTitle().toLowerCase().contains(title.toLowerCase()))
+               .filter(m -> genre == null || m.getGenre().toLowerCase().contains(genre.toLowerCase()))
+               .filter(m -> releaseYear == null || String.valueOf(m.getReleaseYear()).equals(releaseYear))
+               .toList();
+
+       Gson gson = new Gson();
+       String json = gson.toJson(result);
+
+       ApiUtils.sendResponse(exchange, 200, json);
+   }
 
     //GET /api/movies/getAll
     private void handleGetAll(HttpExchange exchange) throws IOException {
@@ -43,31 +76,36 @@ public class MovieController implements HttpHandler {
 
     //POST /api/movies/add
     private void handleAdd(HttpExchange exchange) throws IOException {
+
         if (!exchange.getRequestMethod().equals("POST")) {
             ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
             return;
         }
 
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        String title = extractJsonValue(body, "title");
-        String genre = extractJsonValue(body, "genre");
-        int releaseYear = extractIntValue(body, "releaseYear");
 
-        if (title == null || genre == null || releaseYear == -1) {
+        Movie movie = gson.fromJson(body, Movie.class);
+
+        if (movie == null || movie.getTitle() == null || movie.getGenre() == null) {
             ApiUtils.sendResponse(exchange, 400, "{ \"error\": \"Invalid movie data\" }");
             return;
         }
 
-        // Prüfen ob Film schon existiert
+        // check duplicate
         for (Movie m : movies) {
-            if (m.getTitle().equals(title) && m.getGenre().equals(genre) && m.getReleaseYear() == releaseYear) {
+            if (m.getTitle().equals(movie.getTitle()) &&
+                    m.getGenre().equals(movie.getGenre()) &&
+                    m.getReleaseYear() == movie.getReleaseYear()) {
+
                 ApiUtils.sendResponse(exchange, 400, "{ \"error\": \"Movie already exists\" }");
                 return;
             }
         }
 
-        movies.add(new Movie(title, genre, releaseYear));
-        ApiUtils.sendResponse(exchange, 201, "{ \"message\": \"Movie added successfully\" }");
+        movies.add(movie);
+
+        String json = gson.toJson(movie);
+        ApiUtils.sendResponse(exchange, 201, json);
     }
 
     // DELETE /api/movies/delete
@@ -143,6 +181,26 @@ public class MovieController implements HttpHandler {
 
     //Helper Methods
 
+    private Map<String, String> parseQueryParams(String query) {
+        Map<String, String> params = new HashMap<>();
+
+        if (query == null || query.isEmpty()) {
+            return params;
+        }
+
+        String[] pairs = query.split("&");
+
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=");
+
+            if (keyValue.length == 2) {
+                params.put(keyValue[0], keyValue[1]);
+            }
+        }
+
+        return params;
+
+    }
     private String movieToJson(Movie movie) {
         return "{"
                 + "\"id\": \"" + movie.getId() + "\", "
