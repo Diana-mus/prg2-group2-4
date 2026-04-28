@@ -77,10 +77,9 @@ public class MovieController implements HttpHandler {
         }
 
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        Movie updatedMovie = gson.fromJson(body, Movie.class);
-        String id = extractJsonValue(body, "id");
+        Movie movie = gson.fromJson(body, Movie.class);
 
-        boolean success = movieService.updateMovie(id, updatedMovie);
+        boolean success = movieService.deleteMovie(movie.getId().toString());
 
         if (!success) {
             ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Movie not found\" }");
