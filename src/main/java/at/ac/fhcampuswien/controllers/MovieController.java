@@ -17,6 +17,8 @@ public class MovieController implements HttpHandler {
     private final MovieService movieService =
             new MovieService(Movie.generateDummyMovies());
 
+    //GSON Objekt um JSON → Java umzuwandeln
+    //Java → JSON umzuwandeln
     private final Gson gson = new Gson();
 
     @Override
@@ -55,6 +57,7 @@ public class MovieController implements HttpHandler {
         }
 
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        //Movie objekt aus JSON
         Movie movie = gson.fromJson(body, Movie.class);
 
         boolean success = movieService.addMovie(movie);
@@ -74,9 +77,9 @@ public class MovieController implements HttpHandler {
         }
 
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        String id = extractJsonValue(body, "id");
+        Movie movie = gson.fromJson(body, Movie.class);
 
-        boolean success = movieService.deleteMovie(id);
+        boolean success = movieService.deleteMovie(movie.getId().toString());
 
         if (!success) {
             ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Movie not found\" }");
@@ -94,9 +97,11 @@ public class MovieController implements HttpHandler {
 
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
         Movie updatedMovie = gson.fromJson(body, Movie.class);
-        String id = extractJsonValue(body, "id");
 
-        boolean success = movieService.updateMovie(id, updatedMovie);
+        boolean success = movieService.updateMovie(
+                updatedMovie.getId().toString(),
+                updatedMovie
+        );
 
         if (!success) {
             ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Movie not found\" }");
