@@ -26,6 +26,6 @@ public class Main {
 
     private static void registerController(HttpServer server, String path, HttpHandler handler) {
         HttpContext context = server.createContext(path, handler);
-        // Optionally add more configurations to context if needed
+
     }
 }
