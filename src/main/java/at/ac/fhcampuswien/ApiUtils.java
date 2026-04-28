@@ -5,6 +5,8 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.HashMap;
 
 
 public class ApiUtils {
@@ -16,5 +18,24 @@ public class ApiUtils {
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);
         os.close();
+    }
+    public static Map<String, String> parseQueryParams(String query) {
+        Map<String, String> params = new HashMap<>();
+
+        if (query == null || query.isEmpty()) {
+            return params;
+        }
+
+        String[] pairs = query.split("&");
+
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=");
+
+            if (keyValue.length == 2) {
+                params.put(keyValue[0], keyValue[1]);
+            }
+        }
+
+        return params;
     }
 }

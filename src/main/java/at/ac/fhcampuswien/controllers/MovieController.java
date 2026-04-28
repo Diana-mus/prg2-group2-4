@@ -47,7 +47,7 @@ public class MovieController implements HttpHandler {
        }
 
        String query = exchange.getRequestURI().getQuery();
-       Map<String, String> params = parseQueryParams(query);
+       Map<String, String> params = ApiUtils.parseQueryParams(query);
 
        String title = params.get("title");
        String genre = params.get("genre");
@@ -181,26 +181,6 @@ public class MovieController implements HttpHandler {
 
     //Helper Methods
 
-    private Map<String, String> parseQueryParams(String query) {
-        Map<String, String> params = new HashMap<>();
-
-        if (query == null || query.isEmpty()) {
-            return params;
-        }
-
-        String[] pairs = query.split("&");
-
-        for (String pair : pairs) {
-            String[] keyValue = pair.split("=");
-
-            if (keyValue.length == 2) {
-                params.put(keyValue[0], keyValue[1]);
-            }
-        }
-
-        return params;
-
-    }
     private String movieToJson(Movie movie) {
         return "{"
                 + "\"id\": \"" + movie.getId() + "\", "
