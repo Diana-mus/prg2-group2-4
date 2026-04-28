@@ -18,11 +18,13 @@ public class MovieService {
     public boolean addMovie(Movie movie) {
 
         boolean exists = movies.stream()
-                .anyMatch(m -> m.getTitle().equalsIgnoreCase(movie.getTitle()));
+                .anyMatch(m ->
+                        m.getTitle().equalsIgnoreCase(movie.getTitle()) &&
+                                m.getGenre().equalsIgnoreCase(movie.getGenre()) &&
+                                m.getReleaseYear() == movie.getReleaseYear()
+                );
 
-        if (exists) {
-            return false;
-        }
+        if (exists) return false;
 
         movies.add(movie);
         return true;
@@ -34,28 +36,25 @@ public class MovieService {
 
     public boolean updateMovie(String id, Movie updatedMovie) {
 
-        for (Movie movie : movies) {
-            if (movie.getId().toString().equals(id)) {
-
-                movie.setTitle(updatedMovie.getTitle());
-                movie.setGenre(updatedMovie.getGenre());
-                movie.setReleaseYear(updatedMovie.getReleaseYear());
-
-                return true;
-            }
-        }
-
-        return false;
+        return movies.stream()
+                .filter(movie -> movie.getId().toString().equals(id))
+                .findFirst()
+                .map(movie -> {
+                    movie.setTitle(updatedMovie.getTitle());
+                    movie.setGenre(updatedMovie.getGenre());
+                    movie.setReleaseYear(updatedMovie.getReleaseYear());
+                    return true;
+                })
+                .orElse(false);
     }
 
     public List<Movie> searchMovies(String title, String genre, String releaseYear) {
 
         return movies.stream()
-                .filter(movie ->
-                        (title == null || movie.getTitle().toLowerCase().contains(title.toLowerCase())) &&
-                                (genre == null || movie.getGenre().toLowerCase().contains(genre.toLowerCase())) &&
-                                (releaseYear == null || movie.getReleaseYear() == Integer.parseInt(releaseYear))
-                )
+                .filter(m -> title == null || m.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .filter(m -> genre == null || m.getGenre().toLowerCase().contains(genre.toLowerCase()))
+                .filter(m -> releaseYear == null ||
+                        (releaseYear.matches("\\d+") && m.getReleaseYear() == Integer.parseInt(releaseYear)))
                 .toList();
     }
 }
