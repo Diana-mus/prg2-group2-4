@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.services;
 import at.ac.fhcampuswien.repositories.MovieRepository;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 
 import java.util.List;
 import at.ac.fhcampuswien.models.Movie;
@@ -40,7 +41,7 @@ public class MovieService {
                 .orElse(null);
 
         if (movieToDelete == null) {
-            return false;
+            throw new MovieNotFoundException("Movie not found");
         }
 
         return movieRepository.delete(movieToDelete);
