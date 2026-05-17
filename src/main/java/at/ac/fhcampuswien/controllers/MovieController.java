@@ -1,4 +1,5 @@
 package at.ac.fhcampuswien.controllers;
+import at.ac.fhcampuswien.repositories.MovieRepository;
 
 import at.ac.fhcampuswien.ApiUtils;
 import at.ac.fhcampuswien.models.Movie;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class MovieController implements HttpHandler {
 
     private final MovieService movieService =
-            new MovieService(Movie.generateDummyMovies());
+            new MovieService(new MovieRepository());
 
     //GSON Objekt um JSON → Java umzuwandeln
     //Java → JSON umzuwandeln

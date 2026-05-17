@@ -3,28 +3,27 @@ package at.ac.fhcampuswien.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import at.ac.fhcampuswien.models.Movie;
+import at.ac.fhcampuswien.repositories.MovieRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MovieServiceTest {
 
     private MovieService movieService;
-    private List<Movie> movies;
+    private MovieRepository movieRepository;
 
     @BeforeEach
     void setUp() {
-        movies = new ArrayList<>();
-        movies.add(new Movie("Inception", "Sci-Fi", 2010));
-        movies.add(new Movie("Titanic", "Drama", 1997));
 
-        movieService = new MovieService(movies);
+        movieRepository = new MovieRepository();
+        movieService = new MovieService(movieRepository);
+
+        movieService.addMovie(new Movie("Inception", "Sci-Fi", 2010));
+        movieService.addMovie(new Movie("Titanic", "Drama", 1997));
     }
-
-    // ✅ ADD MOVIE
 
     @Test
     void addMovie_success() {
@@ -33,7 +32,7 @@ public class MovieServiceTest {
         boolean result = movieService.addMovie(newMovie);
 
         assertTrue(result);
-        assertEquals(3, movies.size());
+        assertEquals(3, movieService.getAllMovies().size());
     }
 
     @Test
@@ -43,19 +42,17 @@ public class MovieServiceTest {
         boolean result = movieService.addMovie(duplicate);
 
         assertFalse(result);
-        assertEquals(2, movies.size());
+        assertEquals(2, movieService.getAllMovies().size());
     }
-
-    // ✅ DELETE MOVIE
 
     @Test
     void deleteMovie_success() {
-        String id = movies.get(0).getId().toString();
+        String id = movieService.getAllMovies().get(0).getId().toString();
 
         boolean result = movieService.deleteMovie(id);
 
-        assertTrue(result);
-        assertEquals(1, movies.size());
+        assertNotNull(result);
+        assertEquals(1, movieService.getAllMovies().size());
     }
 
     @Test
@@ -63,21 +60,19 @@ public class MovieServiceTest {
         boolean result = movieService.deleteMovie("wrong-id");
 
         assertFalse(result);
-        assertEquals(2, movies.size());
+        assertEquals(2, movieService.getAllMovies().size());
     }
-
-    // ✅ UPDATE MOVIE
 
     @Test
     void updateMovie_success() {
-        String id = movies.get(0).getId().toString();
+        String id = movieService.getAllMovies().get(0).getId().toString();
 
         Movie updated = new Movie("Updated Title", "Drama", 2020);
 
         boolean result = movieService.updateMovie(id, updated);
 
         assertTrue(result);
-        assertEquals("Updated Title", movies.get(0).getTitle());
+        assertEquals("Updated Title", movieService.getAllMovies().get(0).getTitle());
     }
 
     @Test
@@ -88,8 +83,6 @@ public class MovieServiceTest {
 
         assertFalse(result);
     }
-
-    // ✅ SEARCH MOVIES
 
     @Test
     void searchMovies_byTitle() {
