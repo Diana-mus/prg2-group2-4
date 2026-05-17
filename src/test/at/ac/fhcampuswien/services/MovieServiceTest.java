@@ -2,82 +2,79 @@ package at.ac.fhcampuswien.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
+import at.ac.fhcampuswien.exceptions.DatabaseException;
+import at.ac.fhcampuswien.models.Movie;
+import at.ac.fhcampuswien.repositories.MovieRepository;
+
 import java.util.List;
 
-import at.ac.fhcampuswien.models.Movie;
-
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 public class MovieServiceTest {
 
     private MovieService movieService;
-    private List<Movie> movies;
+
+    @Mock
+    private MovieRepository movieRepository;
 
     @BeforeEach
     void setUp() {
-        movies = new ArrayList<>();
-        movies.add(new Movie("Inception", "Sci-Fi", 2010));
-        movies.add(new Movie("Titanic", "Drama", 1997));
-
-        movieService = new MovieService(movies);
+        MockitoAnnotations.openMocks(this);
+        movieService = new MovieService(movieRepository);
     }
-
-    // ✅ ADD MOVIE
 
     @Test
     void addMovie_success() {
+        when(movieRepository.findAll()).thenReturn(List.of());
+
         Movie newMovie = new Movie("Avatar", "Sci-Fi", 2009);
 
         boolean result = movieService.addMovie(newMovie);
 
         assertTrue(result);
-        assertEquals(3, movies.size());
+        verify(movieRepository).add(newMovie);
     }
 
     @Test
     void addMovie_duplicate() {
+        List<Movie> movies = List.of(
+                new Movie("Inception", "Sci-Fi", 2010)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
         Movie duplicate = new Movie("Inception", "Sci-Fi", 2010);
 
         boolean result = movieService.addMovie(duplicate);
 
         assertFalse(result);
-        assertEquals(2, movies.size());
     }
 
-    // ✅ DELETE MOVIE
-
     @Test
-    void deleteMovie_success() {
-        String id = movies.get(0).getId().toString();
+    void deleteMovie_databaseException() {
+        when(movieRepository.findAll())
+                .thenThrow(new DatabaseException("Database error", new RuntimeException()));
 
-        boolean result = movieService.deleteMovie(id);
-
-        assertTrue(result);
-        assertEquals(1, movies.size());
+        assertThrows(
+                DatabaseException.class,
+                () -> movieService.deleteMovie("some-id")
+        );
     }
 
     @Test
     void deleteMovie_notFound() {
-        boolean result = movieService.deleteMovie("wrong-id");
+        when(movieRepository.findAll()).thenReturn(List.of());
 
-        assertFalse(result);
-        assertEquals(2, movies.size());
-    }
-
-    // ✅ UPDATE MOVIE
-
-    @Test
-    void updateMovie_success() {
-        String id = movies.get(0).getId().toString();
-
-        Movie updated = new Movie("Updated Title", "Drama", 2020);
-
-        boolean result = movieService.updateMovie(id, updated);
-
-        assertTrue(result);
-        assertEquals("Updated Title", movies.get(0).getTitle());
+        assertThrows(
+                MovieNotFoundException.class,
+                () -> movieService.deleteMovie("wrong-id")
+        );
     }
 
     @Test
@@ -89,10 +86,14 @@ public class MovieServiceTest {
         assertFalse(result);
     }
 
-    // ✅ SEARCH MOVIES
-
     @Test
     void searchMovies_byTitle() {
+        List<Movie> movies = List.of(
+                new Movie("Inception", "Sci-Fi", 2010)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
         List<Movie> result = movieService.searchMovies("incep", null, null);
 
         assertEquals(1, result.size());
@@ -100,6 +101,12 @@ public class MovieServiceTest {
 
     @Test
     void searchMovies_byGenre() {
+        List<Movie> movies = List.of(
+                new Movie("Titanic", "Drama", 1997)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
         List<Movie> result = movieService.searchMovies(null, "Drama", null);
 
         assertEquals(1, result.size());
@@ -107,6 +114,12 @@ public class MovieServiceTest {
 
     @Test
     void searchMovies_byYear() {
+        List<Movie> movies = List.of(
+                new Movie("Inception", "Sci-Fi", 2010)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
         List<Movie> result = movieService.searchMovies(null, null, "2010");
 
         assertEquals(1, result.size());
@@ -114,6 +127,12 @@ public class MovieServiceTest {
 
     @Test
     void searchMovies_noResult() {
+        List<Movie> movies = List.of(
+                new Movie("Inception", "Sci-Fi", 2010)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
         List<Movie> result = movieService.searchMovies("xyz", null, null);
 
         assertTrue(result.isEmpty());

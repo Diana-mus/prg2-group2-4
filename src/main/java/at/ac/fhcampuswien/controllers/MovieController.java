@@ -1,4 +1,8 @@
 package at.ac.fhcampuswien.controllers;
+import at.ac.fhcampuswien.repositories.MovieRepository;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
+import com.google.gson.JsonSyntaxException;
+import at.ac.fhcampuswien.exceptions.DatabaseException;
 
 import at.ac.fhcampuswien.ApiUtils;
 import at.ac.fhcampuswien.models.Movie;
@@ -15,7 +19,7 @@ import java.util.Map;
 public class MovieController implements HttpHandler {
 
     private final MovieService movieService =
-            new MovieService(Movie.generateDummyMovies());
+            new MovieService(new MovieRepository());
 
     //GSON Objekt um JSON → Java umzuwandeln
     //Java → JSON umzuwandeln
@@ -49,25 +53,37 @@ public class MovieController implements HttpHandler {
         List<Movie> movies = movieService.getAllMovies();
         ApiUtils.sendResponse(exchange, 200, gson.toJson(movies));
     }
-
     private void handleAdd(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equals("POST")) {
             ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
             return;
         }
 
-        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        //Movie objekt aus JSON
-        Movie movie = gson.fromJson(body, Movie.class);
+        try {
 
-        boolean success = movieService.addMovie(movie);
+            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
-        if (!success) {
-            ApiUtils.sendResponse(exchange, 400, "{ \"error\": \"Movie already exists\" }");
-            return;
+            Movie movie = gson.fromJson(body, Movie.class);
+
+            boolean success = movieService.addMovie(movie);
+
+            if (!success) {
+                ApiUtils.sendResponse(exchange, 400, "{ \"error\": \"Movie already exists\" }");
+                return;
+            }
+
+            ApiUtils.sendResponse(exchange, 201, gson.toJson(movie));
+
+        } catch (JsonSyntaxException e) {
+
+            ApiUtils.sendResponse(exchange, 400,
+                    "{ \"error\": \"Invalid JSON\" }");
         }
+        catch (DatabaseException e) {
 
-        ApiUtils.sendResponse(exchange, 201, gson.toJson(movie));
+            ApiUtils.sendResponse(exchange, 500,
+                    "{ \"error\": \"Database error\" }");
+        }
     }
 
     private void handleDelete(HttpExchange exchange) throws IOException {
@@ -79,14 +95,18 @@ public class MovieController implements HttpHandler {
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
         Movie movie = gson.fromJson(body, Movie.class);
 
-        boolean success = movieService.deleteMovie(movie.getId().toString());
+        try {
 
-        if (!success) {
-            ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Movie not found\" }");
-            return;
+            movieService.deleteMovie(movie.getId().toString());
+
+            ApiUtils.sendResponse(exchange, 200,
+                    "{ \"message\": \"Movie deleted successfully\" }");
+
+        } catch (MovieNotFoundException e) {
+
+            ApiUtils.sendResponse(exchange, 404,
+                    "{ \"error\": \"Movie not found\" }");
         }
-
-        ApiUtils.sendResponse(exchange, 200, "{ \"message\": \"Movie deleted successfully\" }");
     }
 
     private void handleUpdate(HttpExchange exchange) throws IOException {
@@ -98,17 +118,21 @@ public class MovieController implements HttpHandler {
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
         Movie updatedMovie = gson.fromJson(body, Movie.class);
 
-        boolean success = movieService.updateMovie(
-                updatedMovie.getId().toString(),
-                updatedMovie
-        );
+        try {
 
-        if (!success) {
-            ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Movie not found\" }");
-            return;
+            movieService.updateMovie(
+                    updatedMovie.getId().toString(),
+                    updatedMovie
+            );
+
+            ApiUtils.sendResponse(exchange, 200,
+                    "{ \"message\": \"Movie updated successfully\" }");
+
+        } catch (MovieNotFoundException e) {
+
+            ApiUtils.sendResponse(exchange, 404,
+                    "{ \"error\": \"Movie not found\" }");
         }
-
-        ApiUtils.sendResponse(exchange, 200, "{ \"message\": \"Movie updated successfully\" }");
     }
 
     private void handleSearch(HttpExchange exchange) throws IOException {
