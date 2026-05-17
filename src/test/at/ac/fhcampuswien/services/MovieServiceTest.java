@@ -2,6 +2,10 @@ package at.ac.fhcampuswien.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
@@ -13,36 +17,44 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MovieServiceTest {
 
     private MovieService movieService;
+    @Mock
     private MovieRepository movieRepository;
-
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
 
-        movieRepository = new MovieRepository();
         movieService = new MovieService(movieRepository);
 
-        movieService.addMovie(new Movie("Inception", "Sci-Fi", 2010));
-        movieService.addMovie(new Movie("Titanic", "Drama", 1997));
     }
 
     @Test
     void addMovie_success() {
+
+        when(movieRepository.findAll()).thenReturn(List.of());
+
         Movie newMovie = new Movie("Avatar", "Sci-Fi", 2009);
 
         boolean result = movieService.addMovie(newMovie);
 
         assertTrue(result);
-        assertEquals(3, movieService.getAllMovies().size());
+
+        verify(movieRepository).add(newMovie);
     }
 
     @Test
     void addMovie_duplicate() {
+
+        List<Movie> movies = List.of(
+                new Movie("Inception", "Sci-Fi", 2010)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
         Movie duplicate = new Movie("Inception", "Sci-Fi", 2010);
 
         boolean result = movieService.addMovie(duplicate);
 
         assertFalse(result);
-        assertEquals(2, movieService.getAllMovies().size());
     }
 
     @Test
@@ -86,7 +98,15 @@ public class MovieServiceTest {
 
     @Test
     void searchMovies_byTitle() {
-        List<Movie> result = movieService.searchMovies("incep", null, null);
+
+        List<Movie> movies = List.of(
+                new Movie("Inception", "Sci-Fi", 2010)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
+        List<Movie> result =
+                movieService.searchMovies("incep", null, null);
 
         assertEquals(1, result.size());
     }
