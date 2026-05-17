@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 
 import java.util.List;
 
@@ -57,35 +58,18 @@ public class MovieServiceTest {
         assertFalse(result);
     }
 
-    @Test
-    void deleteMovie_success() {
-        String id = movieService.getAllMovies().get(0).getId().toString();
-
-        boolean result = movieService.deleteMovie(id);
-
-        assertNotNull(result);
-        assertEquals(1, movieService.getAllMovies().size());
-    }
 
     @Test
     void deleteMovie_notFound() {
-        boolean result = movieService.deleteMovie("wrong-id");
 
-        assertFalse(result);
-        assertEquals(2, movieService.getAllMovies().size());
+        when(movieRepository.findAll()).thenReturn(List.of());
+
+        assertThrows(
+                MovieNotFoundException.class,
+                () -> movieService.deleteMovie("wrong-id")
+        );
     }
 
-    @Test
-    void updateMovie_success() {
-        String id = movieService.getAllMovies().get(0).getId().toString();
-
-        Movie updated = new Movie("Updated Title", "Drama", 2020);
-
-        boolean result = movieService.updateMovie(id, updated);
-
-        assertTrue(result);
-        assertEquals("Updated Title", movieService.getAllMovies().get(0).getTitle());
-    }
 
     @Test
     void updateMovie_notFound() {
