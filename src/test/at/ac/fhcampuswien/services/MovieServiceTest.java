@@ -97,14 +97,30 @@ public class MovieServiceTest {
 
     @Test
     void searchMovies_byGenre() {
-        List<Movie> result = movieService.searchMovies(null, "Drama", null);
+
+        List<Movie> movies = List.of(
+                new Movie("Titanic", "Drama", 1997)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
+        List<Movie> result =
+                movieService.searchMovies(null, "Drama", null);
 
         assertEquals(1, result.size());
     }
 
     @Test
     void searchMovies_byYear() {
-        List<Movie> result = movieService.searchMovies(null, null, "2010");
+
+        List<Movie> movies = List.of(
+                new Movie("Inception", "Sci-Fi", 2010)
+        );
+
+        when(movieRepository.findAll()).thenReturn(movies);
+
+        List<Movie> result =
+                movieService.searchMovies(null, null, "2010");
 
         assertEquals(1, result.size());
     }
