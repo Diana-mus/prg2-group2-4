@@ -19,6 +19,12 @@ public class Movie {
         this.genre = genre;
         this.releaseYear = releaseYear;
     }
+    public Movie(UUID id, String title, String genre, int releaseYear) {
+        this.id = id;
+        this.title = title;
+        this.genre = genre;
+        this.releaseYear = releaseYear;
+    }
     public UUID getId(){
         return id;
     }

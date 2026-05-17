@@ -6,6 +6,7 @@ import at.ac.fhcampuswien.models.Movie;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 public class MovieRepository {
@@ -38,6 +39,7 @@ public class MovieRepository {
 
             while (resultSet.next()) {
                 Movie movie = new Movie(
+                        resultSet.getObject("id", UUID.class),
                         resultSet.getString("title"),
                         resultSet.getString("genre"),
                         resultSet.getInt("release_year")
