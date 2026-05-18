@@ -107,6 +107,11 @@ public class MovieController implements HttpHandler {
             ApiUtils.sendResponse(exchange, 404,
                     "{ \"error\": \"Movie not found\" }");
         }
+        catch (DatabaseException e) {
+
+            ApiUtils.sendResponse(exchange, 500,
+                    "{ \"error\": \"Database error\" }");
+        }
     }
 
     private void handleUpdate(HttpExchange exchange) throws IOException {
@@ -132,6 +137,11 @@ public class MovieController implements HttpHandler {
 
             ApiUtils.sendResponse(exchange, 404,
                     "{ \"error\": \"Movie not found\" }");
+        }
+        catch (DatabaseException e) {
+
+            ApiUtils.sendResponse(exchange, 500,
+                    "{ \"error\": \"Database error\" }");
         }
     }
 
