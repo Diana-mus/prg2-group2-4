@@ -1,6 +1,7 @@
 package at.ac.fhcampuswien.services;
 import at.ac.fhcampuswien.repositories.MovieRepository;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
+import at.ac.fhcampuswien.exceptions.DatabaseException;
 
 import java.util.List;
 import at.ac.fhcampuswien.models.Movie;
@@ -14,11 +15,11 @@ public class MovieService {
         this.movieRepository = movieRepository;
     }
 
-    public List<Movie> getAllMovies() {
+    public List<Movie> getAllMovies() throws DatabaseException {
         return movieRepository.findAll();
     }
 
-    public boolean addMovie(Movie movie) {
+    public boolean addMovie(Movie movie) throws DatabaseException {
 
         boolean exists = movieRepository.findAll().stream()
                 .anyMatch(m ->
@@ -33,7 +34,8 @@ public class MovieService {
         return true;
     }
 
-    public boolean deleteMovie(String id) {
+    public boolean deleteMovie(String id)
+            throws DatabaseException, MovieNotFoundException {
 
         Movie movieToDelete = movieRepository.findAll().stream()
                 .filter(movie -> movie.getId().toString().equals(id))
@@ -46,7 +48,8 @@ public class MovieService {
 
         return movieRepository.delete(movieToDelete);
     }
-    public boolean updateMovie(String id, Movie updatedMovie) {
+    public boolean updateMovie(String id, Movie updatedMovie)
+            throws DatabaseException, MovieNotFoundException {
 
         Movie existingMovie = movieRepository.findAll().stream()
                 .filter(movie -> movie.getId().toString().equals(id))
@@ -54,8 +57,9 @@ public class MovieService {
                 .orElse(null);
 
         if (existingMovie == null) {
-            return false;
+            throw new MovieNotFoundException("Movie not found");
         }
+
 
         existingMovie.setTitle(updatedMovie.getTitle());
         existingMovie.setGenre(updatedMovie.getGenre());
@@ -64,7 +68,8 @@ public class MovieService {
         return movieRepository.update(existingMovie);
     }
 
-    public List<Movie> searchMovies(String title, String genre, String releaseYear) {
+    public List<Movie> searchMovies(String title, String genre, String releaseYear)
+            throws DatabaseException {
 
         return movieRepository.findAll().stream()
                 .filter(m -> title == null || m.getTitle().toLowerCase().contains(title.toLowerCase()))
