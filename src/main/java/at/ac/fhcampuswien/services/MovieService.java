@@ -1,17 +1,17 @@
 package at.ac.fhcampuswien.services;
-import at.ac.fhcampuswien.repositories.MovieRepository;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.exceptions.DatabaseException;
 
 import java.util.List;
 import at.ac.fhcampuswien.models.Movie;
+import at.ac.fhcampuswien.repositories.MovieRepositoryInterface;
 
 
 public class MovieService {
 
-    private MovieRepository movieRepository;
+    private MovieRepositoryInterface movieRepository;
 
-    public MovieService(MovieRepository movieRepository) {
+    public MovieService(MovieRepositoryInterface movieRepository) {
         this.movieRepository = movieRepository;
     }
 

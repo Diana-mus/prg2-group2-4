@@ -8,7 +8,7 @@ import org.mockito.MockitoAnnotations;
 import at.ac.fhcampuswien.exceptions.MovieNotFoundException;
 import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.models.Movie;
-import at.ac.fhcampuswien.repositories.MovieRepository;
+import at.ac.fhcampuswien.repositories.MovieRepositoryInterface;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class MovieServiceTest {
     private MovieService movieService;
 
     @Mock
-    private MovieRepository movieRepository;
+    private MovieRepositoryInterface movieRepository;
 
     @BeforeEach
     void setUp() {

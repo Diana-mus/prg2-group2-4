@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class MovieRepository {
+public class MovieRepository implements MovieRepositoryInterface {
 
     public void add(Movie movie) throws DatabaseException {
         String sql = "INSERT INTO movies (id, title, genre, release_year) VALUES (?, ?, ?, ?)";
@@ -57,8 +57,7 @@ public class MovieRepository {
         return movies;
     }
 
-    public boolean delete(Movie movie)
-            throws DatabaseException, MovieNotFoundException {
+    public boolean delete(Movie movie) throws DatabaseException, MovieNotFoundException {
 
         String sql = "DELETE FROM movies WHERE title = ? AND genre = ? AND release_year = ?";
 
