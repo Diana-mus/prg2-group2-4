@@ -79,11 +79,14 @@ public class MovieServiceTest {
 
     @Test
     void updateMovie_notFound() {
+        when(movieRepository.findAll()).thenReturn(List.of());
+
         Movie updated = new Movie("Test", "Drama", 2020);
 
-        boolean result = movieService.updateMovie("wrong-id", updated);
-
-        assertFalse(result);
+        assertThrows(
+                MovieNotFoundException.class,
+                () -> movieService.updateMovie("wrong-id", updated)
+        );
     }
 
     @Test

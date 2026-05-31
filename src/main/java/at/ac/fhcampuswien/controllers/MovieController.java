@@ -5,6 +5,7 @@ import com.google.gson.JsonSyntaxException;
 import at.ac.fhcampuswien.exceptions.DatabaseException;
 
 import at.ac.fhcampuswien.ApiUtils;
+import at.ac.fhcampuswien.factory.ErrorResponseFactory;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.services.MovieService;
 import com.google.gson.Gson;
@@ -40,22 +41,23 @@ public class MovieController implements HttpHandler {
         } else if (path.contains("/search")) {
             handleSearch(exchange);
         } else {
-            ApiUtils.sendResponse(exchange, 404, "{ \"error\": \"Path not found\" }");
+            ApiUtils.sendResponse(exchange, 404, ErrorResponseFactory.error("Path not found"));
         }
     }
 
     private void handleGetAll(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equals("GET")) {
-            ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
+            ApiUtils.sendResponse(exchange, 405, ErrorResponseFactory.error("Method not allowed"));
             return;
         }
 
         List<Movie> movies = movieService.getAllMovies();
         ApiUtils.sendResponse(exchange, 200, gson.toJson(movies));
     }
+
     private void handleAdd(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equals("POST")) {
-            ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
+            ApiUtils.sendResponse(exchange, 405, ErrorResponseFactory.error("Method not allowed"));
             return;
         }
 
@@ -68,7 +70,7 @@ public class MovieController implements HttpHandler {
             boolean success = movieService.addMovie(movie);
 
             if (!success) {
-                ApiUtils.sendResponse(exchange, 400, "{ \"error\": \"Movie already exists\" }");
+                ApiUtils.sendResponse(exchange, 400, ErrorResponseFactory.error("Movie already exists"));
                 return;
             }
 
@@ -76,19 +78,17 @@ public class MovieController implements HttpHandler {
 
         } catch (JsonSyntaxException e) {
 
-            ApiUtils.sendResponse(exchange, 400,
-                    "{ \"error\": \"Invalid JSON\" }");
+            ApiUtils.sendResponse(exchange, 400, ErrorResponseFactory.error("Invalid JSON"));
         }
         catch (DatabaseException e) {
 
-            ApiUtils.sendResponse(exchange, 500,
-                    "{ \"error\": \"Database error\" }");
+            ApiUtils.sendResponse(exchange, 500, ErrorResponseFactory.error("Database error"));
         }
     }
 
     private void handleDelete(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equals("DELETE")) {
-            ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
+            ApiUtils.sendResponse(exchange, 405, ErrorResponseFactory.error("Method not allowed"));
             return;
         }
 
@@ -99,24 +99,21 @@ public class MovieController implements HttpHandler {
 
             movieService.deleteMovie(movie.getId().toString());
 
-            ApiUtils.sendResponse(exchange, 200,
-                    "{ \"message\": \"Movie deleted successfully\" }");
+            ApiUtils.sendResponse(exchange, 200, ErrorResponseFactory.success("Movie deleted successfully"));
 
         } catch (MovieNotFoundException e) {
 
-            ApiUtils.sendResponse(exchange, 404,
-                    "{ \"error\": \"Movie not found\" }");
+            ApiUtils.sendResponse(exchange, 404, ErrorResponseFactory.error("Movie not found"));
         }
         catch (DatabaseException e) {
 
-            ApiUtils.sendResponse(exchange, 500,
-                    "{ \"error\": \"Database error\" }");
+            ApiUtils.sendResponse(exchange, 500, ErrorResponseFactory.error("Database error"));
         }
     }
 
     private void handleUpdate(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equals("PUT")) {
-            ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
+            ApiUtils.sendResponse(exchange, 405, ErrorResponseFactory.error("Method not allowed"));
             return;
         }
 
@@ -130,24 +127,21 @@ public class MovieController implements HttpHandler {
                     updatedMovie
             );
 
-            ApiUtils.sendResponse(exchange, 200,
-                    "{ \"message\": \"Movie updated successfully\" }");
+            ApiUtils.sendResponse(exchange, 200, ErrorResponseFactory.success("Movie updated successfully"));
 
         } catch (MovieNotFoundException e) {
 
-            ApiUtils.sendResponse(exchange, 404,
-                    "{ \"error\": \"Movie not found\" }");
+            ApiUtils.sendResponse(exchange, 404, ErrorResponseFactory.error("Movie not found"));
         }
         catch (DatabaseException e) {
 
-            ApiUtils.sendResponse(exchange, 500,
-                    "{ \"error\": \"Database error\" }");
+            ApiUtils.sendResponse(exchange, 500, ErrorResponseFactory.error("Database error"));
         }
     }
 
     private void handleSearch(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equals("GET")) {
-            ApiUtils.sendResponse(exchange, 405, "{ \"error\": \"Method not allowed\" }");
+            ApiUtils.sendResponse(exchange, 405, ErrorResponseFactory.error("Method not allowed"));
             return;
         }
 
