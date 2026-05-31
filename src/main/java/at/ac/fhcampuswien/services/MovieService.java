@@ -5,7 +5,7 @@ import at.ac.fhcampuswien.exceptions.DatabaseException;
 import at.ac.fhcampuswien.validators.MovieValidator;
 
 import java.util.List;
-
+import at.ac.fhcampuswien.filters.MovieFilter;
 import at.ac.fhcampuswien.models.Movie;
 import at.ac.fhcampuswien.repositories.MovieRepositoryInterface;
 
@@ -14,6 +14,7 @@ public class MovieService {
 
     private MovieRepositoryInterface movieRepository;
     private final MovieValidator movieValidator = new MovieValidator();
+    private final MovieFilter movieFilter = new MovieFilter();
 
     public MovieService(MovieRepositoryInterface movieRepository) {
         this.movieRepository = movieRepository;
@@ -77,14 +78,9 @@ public class MovieService {
         return movieRepository.update(existingMovie);
     }
 
-    public List<Movie> searchMovies(String title, String genre, String releaseYear)
-            throws DatabaseException {
-
+    public List<Movie> searchMovies(String title, String genre, String releaseYear) {
         return movieRepository.findAll().stream()
-                .filter(m -> title == null || m.getTitle().toLowerCase().contains(title.toLowerCase()))
-                .filter(m -> genre == null || m.getGenre().toLowerCase().contains(genre.toLowerCase()))
-                .filter(m -> releaseYear == null ||
-                        (releaseYear.matches("\\d+") && m.getReleaseYear() == Integer.parseInt(releaseYear)))
+                .filter(movie -> movieFilter.matches(movie, title, genre, releaseYear))
                 .toList();
     }
 }
